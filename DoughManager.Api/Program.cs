@@ -19,20 +19,25 @@ public class Program
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        string connectionString = builder.Configuration.GetConnectionString("DefaultConnection2");
         builder.Services.AddDbContext<DoughManagerDbContext>((Action<DbContextOptionsBuilder>)(options =>
         {
             options.UseSqlServer(connectionString);
-            options.EnableSensitiveDataLogging();
+            if(builder.Environment.IsDevelopment()) options.EnableSensitiveDataLogging();
+            
         }));
-        builder.WebHost.ConfigureKestrel(options =>
+        if (builder.Environment.IsDevelopment())
         {
-            options.ListenAnyIP(5000);
-            options.ListenAnyIP(5001, listenOptions =>
+            builder.WebHost.ConfigureKestrel(options =>
             {
-                listenOptions.UseHttps();
+                options.ListenAnyIP(5000);
+                options.ListenAnyIP(5001, listenOptions =>
+                {
+                    listenOptions.UseHttps();
+                });
             });
-        });
+        }
+        
         builder.Services.AddTransient<IAccountService, AccountService>();
         builder.Services.AddTransient<IEmailService, EmailService>();
         builder.Services.AddTransient<IProductService, ProductService>();

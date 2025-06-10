@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DoughManager.Data.Migrations
 {
     [DbContext(typeof(DoughManagerDbContext))]
-    [Migration("20250601090708_updatedProductionBatchTable")]
-    partial class updatedProductionBatchTable
+    [Migration("20250610130802_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,6 +48,10 @@ namespace DoughManager.Data.Migrations
                     b.Property<DateTime?>("DeletionTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -67,6 +71,12 @@ namespace DoughManager.Data.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResetCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResetCodeExpTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
@@ -298,6 +308,9 @@ namespace DoughManager.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double>("Amount")
+                        .HasColumnType("float");
+
                     b.Property<DateTime?>("CreationTime")
                         .HasColumnType("datetime2");
 
@@ -310,28 +323,25 @@ namespace DoughManager.Data.Migrations
                     b.Property<DateTime?>("DeletionTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<double>("DiscrepancyAmount")
-                        .HasColumnType("float");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Reason")
+                    b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Shift")
                         .HasColumnType("int");
 
-                    b.Property<string>("StaffOnDuty")
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StaffOnDutyId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StaffOnDutyNavigationId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -339,7 +349,8 @@ namespace DoughManager.Data.Migrations
 
                     b.HasIndex("DeleterId");
 
-                    b.HasIndex("StaffOnDutyNavigationId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("DiscrepancyRecords");
                 });
@@ -595,12 +606,27 @@ namespace DoughManager.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double>("ClosingGas")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ClosingZesaUnits")
+                        .HasColumnType("float");
+
                     b.Property<int>("DamagedQuantity")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("OpeningGas")
+                        .HasColumnType("float");
+
+                    b.Property<double>("OpeningZesaUnits")
+                        .HasColumnType("float");
 
                     b.Property<int>("OvenTime")
                         .HasColumnType("int");
@@ -615,10 +641,19 @@ namespace DoughManager.Data.Migrations
                     b.Property<int>("ProductionBatchId")
                         .HasColumnType("int");
 
+                    b.Property<string>("ProductionProcesses")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("QuantityProduced")
                         .HasColumnType("int");
 
                     b.Property<int>("QuantityToBeProduced")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -628,6 +663,43 @@ namespace DoughManager.Data.Migrations
                     b.HasIndex("ProductionBatchId");
 
                     b.ToTable("ProductBatches");
+                });
+
+            modelBuilder.Entity("DoughManager.Data.EntityModels.ProductBatchRawMaterial", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ProductBatchId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("QuantityUsed")
+                        .HasColumnType("decimal(10, 2)");
+
+                    b.Property<int>("RawMaterialId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnitOfMeasure")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductBatchId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("RawMaterialId");
+
+                    b.ToTable("ProductBatchRawMaterials");
                 });
 
             modelBuilder.Entity("DoughManager.Data.EntityModels.ProductOrder", b =>
@@ -797,43 +869,6 @@ namespace DoughManager.Data.Migrations
                     b.ToTable("ProductionBatches");
                 });
 
-            modelBuilder.Entity("DoughManager.Data.EntityModels.ProductionBatchRawMaterial", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductionBatchId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("QuantityUsed")
-                        .HasColumnType("decimal(10, 2)");
-
-                    b.Property<int>("RawMaterialId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UnitOfMeasure")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("ProductionBatchId");
-
-                    b.HasIndex("RawMaterialId");
-
-                    b.ToTable("ProductionBatchRawMaterials");
-                });
-
             modelBuilder.Entity("DoughManager.Data.EntityModels.RawMaterial", b =>
                 {
                     b.Property<int>("Id")
@@ -983,6 +1018,79 @@ namespace DoughManager.Data.Migrations
                     b.ToTable("ReceivingLogs");
                 });
 
+            modelBuilder.Entity("DoughManager.Data.EntityModels.StockTake", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("ClosingStock")
+                        .HasColumnType("float");
+
+                    b.Property<double>("OpeningStock")
+                        .HasColumnType("float");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("StockLevelAt2PM")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("StockLevelAt9PM")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("StockTakeDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("StockTakes");
+                });
+
+            modelBuilder.Entity("DoughManager.Data.EntityModels.StockTakeStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<TimeSpan>("AfternoonShiftClosedTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan>("AfternoonShiftOpenTime")
+                        .HasColumnType("time");
+
+                    b.Property<bool>("IsAfternoonShiftClosed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsAfternoonShiftOpen")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMorningShiftClosed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMorningShiftOpen")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeSpan>("MorningShiftClosedTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan>("MorningShiftOpenTime")
+                        .HasColumnType("time");
+
+                    b.Property<DateTime>("StockTakeDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StockTakeStatus");
+                });
+
             modelBuilder.Entity("DoughManager.Data.Migrations.UserState", b =>
                 {
                     b.Property<int>("Id")
@@ -1115,9 +1223,9 @@ namespace DoughManager.Data.Migrations
                         .HasForeignKey("DeleterId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("DoughManager.Data.EntityModels.Account", "StaffOnDutyNavigation")
-                        .WithMany()
-                        .HasForeignKey("StaffOnDutyNavigationId")
+                    b.HasOne("DoughManager.Data.EntityModels.Account", "User")
+                        .WithOne("DiscrepancyRecord")
+                        .HasForeignKey("DoughManager.Data.EntityModels.DiscrepancyRecord", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1125,7 +1233,7 @@ namespace DoughManager.Data.Migrations
 
                     b.Navigation("Deleter");
 
-                    b.Navigation("StaffOnDutyNavigation");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DoughManager.Data.EntityModels.Dispatch", b =>
@@ -1243,6 +1351,33 @@ namespace DoughManager.Data.Migrations
                     b.Navigation("ProductionBatch");
                 });
 
+            modelBuilder.Entity("DoughManager.Data.EntityModels.ProductBatchRawMaterial", b =>
+                {
+                    b.HasOne("DoughManager.Data.EntityModels.ProductBatch", "ProductBatch")
+                        .WithMany("RawMaterialsUsed")
+                        .HasForeignKey("ProductBatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DoughManager.Data.EntityModels.Product", "Product")
+                        .WithMany("ProductionBatchRawMaterials")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DoughManager.Data.EntityModels.RawMaterial", "RawMaterial")
+                        .WithMany("ProductBatchRawMaterials")
+                        .HasForeignKey("RawMaterialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ProductBatch");
+
+                    b.Navigation("RawMaterial");
+                });
+
             modelBuilder.Entity("DoughManager.Data.EntityModels.ProductOrder", b =>
                 {
                     b.HasOne("DoughManager.Data.EntityModels.Order", "Order")
@@ -1329,33 +1464,6 @@ namespace DoughManager.Data.Migrations
                     b.Navigation("LastModifier");
                 });
 
-            modelBuilder.Entity("DoughManager.Data.EntityModels.ProductionBatchRawMaterial", b =>
-                {
-                    b.HasOne("DoughManager.Data.EntityModels.Product", "Product")
-                        .WithMany("ProductionBatchRawMaterials")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DoughManager.Data.EntityModels.ProductionBatch", "ProductionBatch")
-                        .WithMany("RawMaterialsUsed")
-                        .HasForeignKey("ProductionBatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DoughManager.Data.EntityModels.RawMaterial", "RawMaterial")
-                        .WithMany("ProductionBatchRawMaterials")
-                        .HasForeignKey("RawMaterialId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("ProductionBatch");
-
-                    b.Navigation("RawMaterial");
-                });
-
             modelBuilder.Entity("DoughManager.Data.EntityModels.RawMaterial", b =>
                 {
                     b.HasOne("DoughManager.Data.EntityModels.Account", "Creator")
@@ -1423,6 +1531,22 @@ namespace DoughManager.Data.Migrations
                     b.Navigation("RawMaterial");
                 });
 
+            modelBuilder.Entity("DoughManager.Data.EntityModels.StockTake", b =>
+                {
+                    b.HasOne("DoughManager.Data.EntityModels.Product", "Product")
+                        .WithMany("StockTakes")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("DoughManager.Data.EntityModels.Account", b =>
+                {
+                    b.Navigation("DiscrepancyRecord");
+                });
+
             modelBuilder.Entity("DoughManager.Data.EntityModels.Category", b =>
                 {
                     b.Navigation("Products");
@@ -1457,6 +1581,13 @@ namespace DoughManager.Data.Migrations
                     b.Navigation("ProductionBatchRawMaterials");
 
                     b.Navigation("ProductionBatches");
+
+                    b.Navigation("StockTakes");
+                });
+
+            modelBuilder.Entity("DoughManager.Data.EntityModels.ProductBatch", b =>
+                {
+                    b.Navigation("RawMaterialsUsed");
                 });
 
             modelBuilder.Entity("DoughManager.Data.EntityModels.ProductionBatch", b =>
@@ -1466,15 +1597,13 @@ namespace DoughManager.Data.Migrations
                     b.Navigation("ProductBatches");
 
                     b.Navigation("ProductOrders");
-
-                    b.Navigation("RawMaterialsUsed");
                 });
 
             modelBuilder.Entity("DoughManager.Data.EntityModels.RawMaterial", b =>
                 {
-                    b.Navigation("ProductRawMaterials");
+                    b.Navigation("ProductBatchRawMaterials");
 
-                    b.Navigation("ProductionBatchRawMaterials");
+                    b.Navigation("ProductRawMaterials");
 
                     b.Navigation("RawMaterialInventories");
 
