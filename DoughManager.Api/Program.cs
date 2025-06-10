@@ -19,7 +19,7 @@ public class Program
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        string connectionString = builder.Configuration.GetConnectionString("DefaultConnection2");
+        string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<DoughManagerDbContext>((Action<DbContextOptionsBuilder>)(options =>
         {
             options.UseSqlServer(connectionString);
