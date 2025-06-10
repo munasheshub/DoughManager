@@ -1,5 +1,5 @@
 ﻿# Use the official .NET SDK image as a build stage
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
 # Copy the project files
