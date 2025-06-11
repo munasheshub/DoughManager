@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using DoughManager.Data.DbContexts;
 using DoughManager.Services.Helpers;
 using DoughManager.Services.Interfaces;
@@ -8,6 +9,7 @@ using GoldenDusk.Core.AppServices.Authentication;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -37,7 +39,8 @@ public class Program
                 });
             });
         }
-        
+
+        builder.Services.AddHealthChecks();
         builder.Services.AddTransient<IAccountService, AccountService>();
         builder.Services.AddTransient<IEmailService, EmailService>();
         builder.Services.AddTransient<IProductService, ProductService>();
@@ -71,20 +74,39 @@ public class Program
         builder.Services.AddAuthorization();
         builder.Services.AddControllers();
         builder.Services.AddOpenApi();
-        WebApplication webApplication = builder.Build();
-        webApplication.MapOpenApi();
-        webApplication.MapScalarApiReference((Action<ScalarOptions>)(options =>
+        WebApplication app = builder.Build();
+        app.MapOpenApi();
+        app.MapScalarApiReference((Action<ScalarOptions>)(options =>
         {
-            options.Title = "Moringa Bakery API";
+            options.Title = "Dough Manager API";
             options.Theme = ScalarTheme.Moon;
         }));
-        webApplication.UseHttpsRedirection();
-        webApplication.UseRouting();
-        webApplication.UseCors((Action<CorsPolicyBuilder>)(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
-        webApplication.UseAuthentication();
-        webApplication.UseAuthorization();
-        webApplication.UseMiddleware<JwtMiddleware>();
-        webApplication.MapControllers();
-        webApplication.Run();
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = async (context, report) =>
+            {
+                context.Response.ContentType = "application/json";
+                var result = JsonSerializer.Serialize(new
+                {
+                    status = report.Status.ToString(),
+                    checks = report.Entries.Select(e => new {
+                        name = e.Key,
+                        status = e.Value.Status.ToString(),
+                        exception = e.Value.Exception?.Message,
+                        duration = e.Value.Duration.ToString()
+                    })
+                });
+                await context.Response.WriteAsync(result);
+            }
+        });
+
+        app.UseHttpsRedirection();
+        app.UseRouting();
+        app.UseCors((Action<CorsPolicyBuilder>)(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseMiddleware<JwtMiddleware>();
+        app.MapControllers();
+        app.Run();
     }
 }
