@@ -17,6 +17,7 @@ public class Account : FullyAuditedEntity
     public string UserName { get; set; } = null!;
 
     public string PasswordHash { get; set; } = null!;
+    public string? ProfileImageUrl { get; set; }
 
     public Role Role { get; set; }
 
