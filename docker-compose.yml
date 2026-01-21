@@ -33,4 +33,4 @@ services:
       - backend-network
 
 networks:
-  backend-network:x
+  backend-network:
