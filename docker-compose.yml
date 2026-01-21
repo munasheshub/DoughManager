@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  myapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myapi_dough_manager
+    ports:
+      - "8000:8000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+    depends_on:
+      - sqlserver
+    networks:
+      - backend-network
+  
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver_dough_manager
+    environment:
+      SA_PASSWORD: "Gandari12"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    networks:
+      - backend-network
+networks:
+  backend-network:
+
+
+  
